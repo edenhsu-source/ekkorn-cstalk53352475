@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>Ekkorn 話術工具 2.3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root {
+  --primary: #ff7a1a;
+  --primary-soft: #ffe0c7;
+  --bg: #f5f7fb;
+  --card-bg: #ffffff;
+  --border-radius: 16px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: "Noto Sans TC", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: radial-gradient(circle at top left, #ffe8d2, #f5f7fb 40%);
+  margin: 0;
+  padding: 28px;
+  color: #333;
+  font-size: 15px;
+}
+
+.app {
+  max-width: 1320px;
+  margin: 0 auto;
+  background: rgba(255,255,255,0.94);
+  border-radius: 24px;
+  box-shadow: 0 18px 52px rgba(0,0,0,0.1);
+  padding: 26px;
+  backdrop-filter: blur(10px);
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.title-block h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.title-block p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #777;
+}
+
+#globalSearch {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid #e0e2ea;
+  font-size: 14px;
+  margin: 10px 0 6px;
+  outline: none;
+}
+#globalSearch:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(255,122,26,0.15);
+}
+
+/* 快速搜尋列 */
+.quick-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.quick-label {
+  font-size: 12px;
+  color: #777;
+  margin-right: 4px;
+}
+
+.quick-chip {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  background: #f2f3f7;
+  color: #555;
+  cursor: pointer;
+}
+.quick-chip:hover {
+  background: #ffe0c7;
+  color: #b25a12;
+}
+
+.quick-edit-btn {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  color: #999;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.quick-edit-btn:hover {
+  color: #666;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 35%) minmax(0, 65%);
+  gap: 20px;
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 18px;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.06);
+  min-height: 320px;
+}
+
+.panel-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #555;
+  gap: 10px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: #f2f3f7;
+  color: #777;
+}
+
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-primary { background: --primary; background: var(--primary); color: #fff; }
+.btn-secondary { background: #f2f3f7; color: #555; }
+.btn-mini { padding: 6px 13px; font-size: 13px; }
+.btn-danger { background: #ffe5e5; color: #b43737; }
+
+select.sort-select {
+  border-radius: 999px;
+  border: 1px solid #e0e2ea;
+  padding: 5px 10px;
+  font-size: 13px;
+  background: #f9fafc;
+}
+
+/* 類別列表 */
+#categoryList { max-height: 520px; overflow-y: auto; }
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  background: #fafbff;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+.category-item:hover {
+  background: #fff7ef;
+  border-color: var(--primary-soft);
+  transform: translateY(-1px);
+}
+.category-item.active {
+  background: #ffefe0;
+  border-color: var(--primary);
+}
+.category-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #444;
+}
+.category-count {
+  font-size: 12px;
+  color: #777;
+  background: #f2f3f7;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.category-order-btn {
+  margin-top: 4px;
+  border: none;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  background: #f2f3f7;
+  color: #666;
+  cursor: pointer;
+}
+.category-order-btn:hover {
+  background: #ffe0c7;
+  color: #b25a12;
+}
+
+/* 話術列表 */
+#phraseList { max-height: 520px; overflow-y: auto; }
+
+.phrase-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 14px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  background: #fafbff;
+  border: 1px solid #eceffd;
+}
+
+.phrase-text {
+  font-size: 15px;
+  color: #444;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+.phrase-meta {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 6px;
+}
+
+.phrase-note {
+  font-size: 12px;
+  color: #b26016;
+  margin-top: 4px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.phrase-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #999;
+  text-align: center;
+  padding: 24px 8px;
+}
+
+#phraseSearch {
+  width: 100%;
+  padding: 9px 13px;
+  border-radius: 999px;
+  border: 1px solid #e0e2ea;
+  font-size: 14px;
+  margin-bottom: 12px;
+  outline: none;
+}
+#phraseSearch:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(255,122,26,0.15);
+}
+
+.hint {
+  font-size: 12px;
+  color: #999;
+  margin-top: 6px;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal.show { display: flex; }
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+}
+
+.modal-content {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  padding: 22px 22px 18px;
+  max-width: 620px;
+  width: 96%;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  z-index: 1001;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.field { margin-bottom: 12px; }
+
+.field label {
+  font-size: 14px;
+  display: block;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #e0e2ea;
+  padding: 9px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 40px;
+  outline: none;
+}
+
+.field textarea { min-height: 90px; }
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(255,122,26,0.15);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f7f1ff;
+  color: #7b4bb8;
+  font-size: 12px;
+}
+
+/* 快捷鍵編輯列 */
+.shortcut-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.shortcut-row input {
+  flex: 1;
+}
+.shortcut-delete-btn {
+  border: none;
+  border-radius: 8px;
+  background: #ffe5e5;
+  color: #b43737;
+  font-size: 12px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.shortcut-delete-btn:hover {
+  background: #ffcccc;
+}
+
+/* Toast */
+#toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  background: #2e7d32;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 2000;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+#toast.error { background: #c62828; }
+
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="title-block">
+      <h1>Ekkorn 話術工具 2.3</h1>
+      <p>類別管理・自訂排序・全域快捷搜尋・一鍵複製</p>
+    </div>
+  </header>
+
+  <!-- 全域搜尋 -->
+  <input id="globalSearch" type="text" placeholder="🔍 在所有話術中搜尋（類別 / 內容 / 備註）…">
+  <div id="quickSearchContainer" class="quick-container"></div>
+
+  <div class="layout">
+    <!-- 左：類別列表 -->
+    <section class="panel">
+      <div class="panel-title">
+        <span>類別</span>
+        <span class="tag" id="totalCountTag">0 筆話術</span>
+      </div>
+      <div id="categoryList"></div>
+      <div class="hint">提示：點類別下面的「序」按鈕即可快速調整排序。</div>
+    </section>
+
+    <!-- 右：話術列表或搜尋結果 -->
+    <section class="panel">
+      <div class="panel-title">
+        <span id="currentCategoryLabel">請先選擇左側類別，或直接使用上方全域搜尋</span>
+        <button class="btn btn-primary" onclick="openAddModal()">＋ 新增話術</button>
+      </div>
+      <input id="phraseSearch" type="text" placeholder="在目前類別中搜尋關鍵字（內容 / 備註）…" />
+      <div id="phraseList"></div>
+    </section>
+  </div>
+</div>
+
+<!-- 新增 / 編輯 話術 Modal -->
+<div id="phraseModal" class="modal">
+  <div class="modal-backdrop" onclick="closeModal()"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitle">新增話術</h2>
+      <span id="modalModePill" class="pill">新增模式</span>
+    </div>
+
+    <input type="hidden" id="modalId">
+
+    <div class="field">
+      <label>類別</label>
+      <select id="modalCategorySelect"></select>
+      <div class="hint">可從既有類別選擇，或在下方輸入新類別。</div>
+    </div>
+
+    <div class="field">
+      <label>新增類別（選填，若填寫將覆蓋上方選擇）</label>
+      <input id="modalCategoryNew" placeholder="例如：迎賓語、安撫、道歉、活動說明…" />
+    </div>
+
+    <div class="field">
+      <label>類別排序數字（選填，數字越小越前面；例如 1, 2, 3…）</label>
+      <input id="modalCatOrder" type="number" min="0" step="1" placeholder="例如：1">
+    </div>
+
+    <div class="field">
+      <label>內容（實際貼給用戶的話術）</label>
+      <textarea id="modalContent" placeholder="您好～歡迎來到 Ekkorn，我是客服，有什麼地方可以協助您的嗎？"></textarea>
+    </div>
+
+    <div class="field">
+      <label>對話示例（可選填，用來說明情境）</label>
+      <textarea id="modalExample" placeholder="客：…&#10;服：…"></textarea>
+    </div>
+
+    <div class="field">
+      <label>此話術排序數字（選填，同一類別內，數字越小越上面）</label>
+      <input id="modalPhraseOrder" type="number" min="0" step="1" placeholder="例如：1">
+    </div>
+
+    <div class="field">
+      <label>備註（使用提醒、適合／不適合的情境等）</label>
+      <textarea id="modalNote" placeholder="例如：不適用於已明顯情緒性抱怨的情況…"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <div>
+        <button class="btn btn-primary" onclick="saveFromModal()">💾 儲存</button>
+        <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+      </div>
+      <button class="btn btn-danger" id="modalDeleteBtn" style="display:none;" onclick="deleteFromModal()">🗑 刪除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 類別排序 Modal -->
+<div id="categoryOrderModal" class="modal">
+  <div class="modal-backdrop" onclick="closeCategoryOrderModal()"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>調整類別排序</h2>
+    </div>
+    <div class="field">
+      <label>類別名稱</label>
+      <div id="catOrderCategoryName" style="font-size:14px;font-weight:600;"></div>
+    </div>
+    <div class="field">
+      <label>排序數字（數字越小越前面）</label>
+      <input id="catOrderInput" type="number" min="0" step="1">
+    </div>
+    <div class="modal-footer">
+      <div>
+       <button class="btn btn-primary" id="catOrderSaveBtn" onclick="saveCategoryOrder()">儲存</button>
+       <button class="btn btn-secondary" onclick="closeCategoryOrderModal()">取消</button>
+      </div>
+       <span id="catOrderStatus" class="hint" style="display:none;">正在更新類別排序，請稍候…</span>
+    </div>
+  </div>
+</div>
+
+<!-- 快速搜尋快捷鍵 Modal -->
+<div id="shortcutModal" class="modal">
+  <div class="modal-backdrop" onclick="closeShortcutModal()"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>編輯快速搜尋鍵</h2>
+    </div>
+    <div class="field">
+      <label>最多可設定 15 個常用關鍵字</label>
+      <div id="shortcutList"></div>
+      <button class="btn btn-secondary btn-mini" id="addShortcutBtn" type="button" onclick="addShortcutRow()">＋ 新增快捷鍵</button>
+      <div class="hint">提示：按儲存後，會顯示在全域搜尋欄位下方的小按鈕。</div>
+    </div>
+    <div class="modal-footer">
+      <div>
+        <button class="btn btn-primary" onclick="saveShortcuts()">儲存</button>
+        <button class="btn btn-secondary" onclick="closeShortcutModal()">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast">
+  <span id="toastIcon">✔</span>
+  <span id="toastText">已複製</span>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbztZuAh2G_c5Dy3nGvjnV5TdKyJ6FEHMpVpcYHEUT3eT_50BMULOaFTWX1IRL_eSR81/exec";
+const SHORTCUTS_KEY = "ekkornQuickSearchShortcuts";
+
+let fullData = [];
+let categories = [];
+let currentCategory = null;
+let modalMode = "add";
+let editingItem = null;
+let toastTimer = null;
+let deleteArmed = false; // 刪除二段式確認用
+let editingCategory = null; // 類別排序編輯中
+let quickShortcuts = [];
+
+// 工具：顯示 Toast
+function showToast(message, isError = false) {
+  const toast = document.getElementById("toast");
+  const text = document.getElementById("toastText");
+  const icon = document.getElementById("toastIcon");
+  text.textContent = message;
+  icon.textContent = isError ? "✕" : "✔";
+  toast.classList.remove("error");
+  if (isError) toast.classList.add("error");
+  toast.classList.add("show");
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+// 讀取 / 儲存 快捷鍵
+function loadShortcutsFromStorage() {
+  try {
+    const raw = localStorage.getItem(SHORTCUTS_KEY);
+    quickShortcuts = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(quickShortcuts)) quickShortcuts = [];
+  } catch (e) {
+    quickShortcuts = [];
+  }
+}
+
+function saveShortcutsToStorage() {
+  try {
+    localStorage.setItem(SHORTCUTS_KEY, JSON.stringify(quickShortcuts));
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function renderShortcutChips() {
+  const container = document.getElementById("quickSearchContainer");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const labelSpan = document.createElement("span");
+  labelSpan.className = "quick-label";
+  labelSpan.textContent = "快速搜尋：";
+  container.appendChild(labelSpan);
+
+  quickShortcuts.forEach(word => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "quick-chip";
+    btn.textContent = word;
+    btn.addEventListener("click", () => {
+      document.getElementById("globalSearch").value = word;
+      document.getElementById("phraseSearch").value = "";
+      renderPhrases();
+    });
+    container.appendChild(btn);
+  });
+
+  const editBtn = document.createElement("button");
+  editBtn.type = "button";
+  editBtn.className = "quick-edit-btn";
+  editBtn.textContent = "✏ 編輯快捷鍵";
+  editBtn.addEventListener("click", openShortcutModal);
+  container.appendChild(editBtn);
+
+  if (quickShortcuts.length === 0) {
+    const emptyHint = document.createElement("span");
+    emptyHint.className = "hint";
+    emptyHint.textContent = "（目前尚未設定，點右側編輯新增）";
+    container.appendChild(emptyHint);
+  }
+}
+
+// 載入資料
+async function loadData() {
+  try {
+    const res = await fetch(API + "?action=list");
+    fullData = await res.json();
+    rebuildCategories();
+    renderCategories();
+    renderPhrases();
+    updateTotalCount();
+  } catch (err) {
+    console.error(err);
+    alert("載入資料時發生錯誤，請檢查 API 連結或 Apps Script 部署設定。");
+  }
+}
+
+function updateTotalCount() {
+  const total = fullData.length || 0;
+  document.getElementById("totalCountTag").textContent = `${total} 筆話術`;
+}
+
+// 重建類別
+function rebuildCategories() {
+  const set = new Set();
+  fullData.forEach(item => {
+    const cat = (item.category || "未分類").trim();
+    if (cat) set.add(cat);
+  });
+  categories = Array.from(set);
+  if (!currentCategory && categories.length > 0) currentCategory = categories[0];
+}
+
+// 類別排序值：該類別所有話術的 cat_order 中最小值
+function getCategoryOrder(cat) {
+  const items = fullData.filter(i => (i.category || "未分類").trim() === cat);
+  const nums = items
+    .map(i => parseFloat(i.cat_order))
+    .filter(n => !isNaN(n));
+  return nums.length ? Math.min(...nums) : Number.POSITIVE_INFINITY;
+}
+
+// 類別列表渲染
+function renderCategories() {
+  const list = document.getElementById("categoryList");
+  list.innerHTML = "";
+
+  if (!categories.length) {
+    list.innerHTML = `<div class="empty-text">目前尚無任何話術，請先點右側「＋ 新增話術」。</div>`;
+    currentCategory = null;
+    document.getElementById("currentCategoryLabel").textContent =
+      "請先選擇左側類別，或直接使用上方全域搜尋";
+    return;
+  }
+
+  let cats = [...categories];
+  cats.sort((a, b) => {
+    const oa = getCategoryOrder(a);
+    const ob = getCategoryOrder(b);
+    if (oa === ob) return a.localeCompare(b, "zh-Hant");
+    return oa - ob;
+  });
+
+  cats.forEach(cat => {
+    const div = document.createElement("div");
+    div.className = "category-item" + (cat === currentCategory ? " active" : "");
+    const count = fullData.filter(item => (item.category || "未分類").trim() === cat).length;
+
+    const order = getCategoryOrder(cat);
+    const orderText = isFinite(order) ? `序：${order}` : "序：—";
+
+    const left = document.createElement("div");
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "category-name";
+    nameDiv.textContent = cat;
+
+    const orderBtn = document.createElement("button");
+    orderBtn.type = "button";
+    orderBtn.className = "category-order-btn";
+    orderBtn.textContent = orderText;
+    orderBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openCategoryOrderModal(cat);
+    });
+
+    left.appendChild(nameDiv);
+    left.appendChild(orderBtn);
+
+    const countDiv = document.createElement("div");
+    countDiv.className = "category-count";
+    countDiv.textContent = count;
+
+    div.appendChild(left);
+    div.appendChild(countDiv);
+
+    div.addEventListener("click", () => {
+      currentCategory = cat;
+      document.getElementById("phraseSearch").value = "";
+      document.getElementById("globalSearch").value = "";
+      renderCategories();
+      renderPhrases();
+    });
+
+    list.appendChild(div);
+  });
+
+  document.getElementById("currentCategoryLabel").textContent =
+    currentCategory ? `類別：${currentCategory}` : "請先選擇左側類別，或直接使用上方全域搜尋";
+}
+
+// 話術排序值
+function getPhraseOrder(item) {
+  const n = parseFloat(item.phrase_order);
+  return isNaN(n) ? Number.POSITIVE_INFINITY : n;
+}
+
+// 渲染話術（含全域搜尋模式）
+function renderPhrases() {
+  const list = document.getElementById("phraseList");
+  list.innerHTML = "";
+
+  const globalKey = document.getElementById("globalSearch").value.trim().toLowerCase();
+
+  // 全域搜尋模式
+  if (globalKey) {
+    const matched = fullData.filter(item => {
+      const cat = (item.category || "").toLowerCase();
+      const content = (item.content || "").toLowerCase();
+      const note = (item.note || "").toLowerCase();
+      return cat.includes(globalKey) || content.includes(globalKey) || note.includes(globalKey);
+    });
+
+    document.getElementById("currentCategoryLabel").textContent =
+      `全域搜尋：「${globalKey}」－ ${matched.length} 筆結果`;
+
+    if (!matched.length) {
+      list.innerHTML = `<div class="empty-text">沒有符合的話術。</div>`;
+      return;
+    }
+
+    matched.sort((a, b) => {
+      const ca = (a.category || "").localeCompare((b.category || ""), "zh-Hant");
+      if (ca !== 0) return ca;
+      return getPhraseOrder(a) - getPhraseOrder(b);
+    });
+
+    matched.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "phrase-row";
+
+      const textDiv = document.createElement("div");
+      textDiv.className = "phrase-text";
+
+      const catName = item.category || "未分類";
+      const meta = document.createElement("div");
+      meta.className = "phrase-meta";
+      meta.textContent = `類別：${catName}`;
+      const content = document.createElement("div");
+      content.textContent = item.content || "（無內容）";
+
+      textDiv.appendChild(meta);
+      textDiv.appendChild(content);
+
+      if (item.note) {
+        const noteDiv = document.createElement("div");
+        noteDiv.className = "phrase-note";
+        noteDiv.textContent = `備註：${item.note}`;
+        textDiv.appendChild(noteDiv);
+      }
+
+      const actionsDiv = document.createElement("div");
+      actionsDiv.className = "phrase-actions";
+
+      const copyBtn = document.createElement("button");
+      copyBtn.className = "btn btn-secondary btn-mini";
+      copyBtn.textContent = "複製";
+      copyBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        copyText(item.content || "");
+      });
+
+      const detailBtn = document.createElement("button");
+      detailBtn.className = "btn btn-secondary btn-mini";
+      detailBtn.textContent = "詳情";
+      detailBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openEditModal(item);
+      });
+
+      actionsDiv.appendChild(copyBtn);
+      actionsDiv.appendChild(detailBtn);
+
+      row.appendChild(textDiv);
+      row.appendChild(actionsDiv);
+
+      list.appendChild(row);
+    });
+
+    return;
+  }
+
+  // 類別模式
+  if (!currentCategory) {
+    list.innerHTML = `<div class="empty-text">左側選一個類別，或先新增一筆話術建立新類別。</div>`;
+    return;
+  }
+
+  const keyword = document.getElementById("phraseSearch").value.trim().toLowerCase();
+
+  let filtered = fullData.filter(item => {
+    const cat = (item.category || "未分類").trim();
+    if (cat !== currentCategory) return false;
+    if (!keyword) return true;
+    const content = (item.content || "").toLowerCase();
+    const note = (item.note || "").toLowerCase();
+    return content.includes(keyword) || note.includes(keyword);
+  });
+
+  filtered.sort((a, b) => {
+    const oa = getPhraseOrder(a);
+    const ob = getPhraseOrder(b);
+    if (oa === ob) {
+      const da = new Date(a.updated_at || 0);
+      const db = new Date(b.updated_at || 0);
+      return db - da;
+    }
+    return oa - ob;
+  });
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-text">此類別目前沒有符合關鍵字的話術。</div>`;
+    return;
+  }
+
+  filtered.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "phrase-row";
+
+    const textDiv = document.createElement("div");
+    textDiv.className = "phrase-text";
+
+    const content = document.createElement("div");
+    content.textContent = item.content || "（無內容）";
+
+    textDiv.appendChild(content);
+
+    if (item.note) {
+      const noteDiv = document.createElement("div");
+      noteDiv.className = "phrase-note";
+      noteDiv.textContent = `備註：${item.note}`;
+      textDiv.appendChild(noteDiv);
+    }
+
+    const actionsDiv = document.createElement("div");
+    actionsDiv.className = "phrase-actions";
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "btn btn-secondary btn-mini";
+    copyBtn.textContent = "複製";
+    copyBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      copyText(item.content || "");
+    });
+
+    const detailBtn = document.createElement("button");
+    detailBtn.className = "btn btn-secondary btn-mini";
+    detailBtn.textContent = "詳情";
+    detailBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openEditModal(item);
+    });
+
+    actionsDiv.appendChild(copyBtn);
+    actionsDiv.appendChild(detailBtn);
+
+    row.appendChild(textDiv);
+    row.appendChild(actionsDiv);
+
+    list.appendChild(row);
+  });
+}
+
+// 複製（用 Toast，含 iframe fallback）
+function copyText(text) {
+  if (!text) {
+    showToast("沒有可複製的內容", true);
+    return;
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast("已複製話術內容"))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+// 備用複製：建立隱藏 textarea + execCommand("copy")
+function fallbackCopy(text) {
+  try {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    const ok = document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    if (ok) {
+      showToast("已複製話術內容");
+    } else {
+      throw new Error("execCommand copy failed");
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("複製失敗，請手動選取文字後按 Ctrl+C / ⌘+C", true);
+  }
+}
+
+// 開啟新增 Modal
+function openAddModal() {
+  modalMode = "add";
+  editingItem = null;
+
+  document.getElementById("modalTitle").textContent = "新增話術";
+  document.getElementById("modalModePill").textContent = "新增模式";
+  document.getElementById("modalDeleteBtn").style.display = "none";
+
+  document.getElementById("modalId").value = "";
+  fillCategorySelect();
+  document.getElementById("modalCategoryNew").value = "";
+  document.getElementById("modalContent").value = "";
+  document.getElementById("modalExample").value = "";
+  document.getElementById("modalNote").value = "";
+  document.getElementById("modalCatOrder").value = suggestCategoryOrder();
+  document.getElementById("modalPhraseOrder").value = suggestPhraseOrder();
+
+  document.getElementById("phraseModal").classList.add("show");
+}
+
+// 開啟編輯 Modal
+function openEditModal(item) {
+  modalMode = "edit";
+  editingItem = item || null;
+
+  document.getElementById("modalTitle").textContent = "編輯話術";
+  document.getElementById("modalModePill").textContent = "編輯模式";
+  document.getElementById("modalDeleteBtn").style.display = "inline-flex";
+
+  document.getElementById("modalId").value = item.id || "";
+  fillCategorySelect(item.category || "");
+  document.getElementById("modalCategoryNew").value = "";
+  document.getElementById("modalContent").value = item.content || "";
+  document.getElementById("modalExample").value = item.example || "";
+  document.getElementById("modalNote").value = item.note || "";
+  document.getElementById("modalCatOrder").value =
+    item.cat_order !== undefined && item.cat_order !== null ? item.cat_order : "";
+  document.getElementById("modalPhraseOrder").value =
+    item.phrase_order !== undefined && item.phrase_order !== null ? item.phrase_order : "";
+
+  document.getElementById("phraseModal").classList.add("show");
+}
+
+// 建議類別排序數字
+function suggestCategoryOrder() {
+  if (currentCategory) {
+    const order = getCategoryOrder(currentCategory);
+    if (isFinite(order)) return order;
+  }
+  const orders = categories
+    .map(c => getCategoryOrder(c))
+    .filter(n => isFinite(n));
+  if (!orders.length) return "";
+  return Math.max(...orders) + 1;
+}
+
+// 建議話術排序數字（目前類別內最大 +1）
+function suggestPhraseOrder() {
+  if (!currentCategory) return "";
+  const list = fullData.filter(i => (i.category || "未分類").trim() === currentCategory);
+  const orders = list
+    .map(i => parseFloat(i.phrase_order))
+    .filter(n => !isNaN(n));
+  if (!orders.length) return "";
+  return Math.max(...orders) + 1;
+}
+
+// 類別下拉選單
+function fillCategorySelect(selected) {
+  const sel = document.getElementById("modalCategorySelect");
+  sel.innerHTML = "";
+
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "（請選擇類別，或下方輸入新類別）";
+  sel.appendChild(placeholder);
+
+  let cats = [...categories];
+  cats.sort((a, b) => {
+    const oa = getCategoryOrder(a);
+    const ob = getCategoryOrder(b);
+    if (oa === ob) return a.localeCompare(b, "zh-Hant");
+    return oa - ob;
+  });
+
+  cats.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    opt.textContent = cat;
+    if (selected && selected === cat) opt.selected = true;
+    if (!selected && currentCategory && currentCategory === cat) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+// 關閉話術 Modal
+function closeModal() {
+  document.getElementById("phraseModal").classList.remove("show");
+  editingItem = null;
+}
+
+// 存檔
+async function saveFromModal() {
+  const id = document.getElementById("modalId").value.trim();
+  const categorySelect = document.getElementById("modalCategorySelect").value.trim();
+  const categoryNew = document.getElementById("modalCategoryNew").value.trim();
+  const content = document.getElementById("modalContent").value.trim();
+  const example = document.getElementById("modalExample").value.trim();
+  const note = document.getElementById("modalNote").value.trim();
+  let catOrder = document.getElementById("modalCatOrder").value.trim();
+  let phraseOrder = document.getElementById("modalPhraseOrder").value.trim();
+
+  if (!content) {
+    alert("至少需要填寫『內容』欄位唷～");
+    return;
+  }
+
+  const finalCategory = categoryNew || categorySelect || "未分類";
+
+  if (!catOrder) {
+    const orders = categories
+      .map(c => getCategoryOrder(c))
+      .filter(n => isFinite(n));
+    catOrder = orders.length ? (Math.max(...orders) + 1).toString() : "1";
+  }
+
+  if (!phraseOrder) {
+    const list = fullData.filter(i => (i.category || "未分類").trim() === finalCategory);
+    const orders = list
+      .map(i => parseFloat(i.phrase_order))
+      .filter(n => !isNaN(n));
+    phraseOrder = orders.length ? (Math.max(...orders) + 1).toString() : "1";
+  }
+
+  const action = id ? "update" : "add";
+
+  const params = new URLSearchParams({
+    action,
+    id,
+    category: finalCategory,
+    cat_order: catOrder,
+    content,
+    example,
+    note,
+    phrase_order: phraseOrder
+  });
+
+  try {
+    await fetch(`${API}?${params.toString()}`);
+    alert("已儲存！");
+    closeModal();
+    await loadData();
+    currentCategory = finalCategory;
+    renderCategories();
+    renderPhrases();
+  } catch (err) {
+    console.error(err);
+    alert("儲存失敗，請檢查 API 連結或 Apps Script 部署。");
+  }
+}
+
+// 刪除（雙擊確認，避免 iframe 被 confirm 擋掉）
+async function deleteFromModal() {
+  const id = document.getElementById("modalId").value.trim();
+  if (!id) return;
+
+  const btn = document.getElementById("modalDeleteBtn");
+
+  if (!deleteArmed) {
+    deleteArmed = true;
+    const originalText = btn.textContent;
+    btn.dataset.originalText = originalText;
+    btn.textContent = "⚠ 再次點擊確認刪除";
+    btn.style.background = "#ffb3b3";
+
+    setTimeout(() => {
+      if (deleteArmed) {
+        deleteArmed = false;
+        btn.textContent = btn.dataset.originalText || "🗑 刪除";
+        btn.style.background = "";
+      }
+    }, 3000);
+
+    return;
+  }
+
+  deleteArmed = false;
+  btn.textContent = btn.dataset.originalText || "🗑 刪除";
+  btn.style.background = "";
+
+  const params = new URLSearchParams({
+    action: "delete",
+    id
+  });
+
+  try {
+    await fetch(`${API}?${params.toString()}`);
+    alert("已刪除。");
+    closeModal();
+    await loadData();
+    renderCategories();
+    renderPhrases();
+  } catch (err) {
+    console.error(err);
+    alert("刪除失敗，請檢查 API 或 Apps Script。");
+  }
+}
+
+/* 類別排序 Modal 控制 */
+function openCategoryOrderModal(cat) {
+  editingCategory = cat;
+  document.getElementById("catOrderCategoryName").textContent = cat;
+  const order = getCategoryOrder(cat);
+  document.getElementById("catOrderInput").value = isFinite(order) ? order : "";
+  document.getElementById("categoryOrderModal").classList.add("show");
+}
+
+function closeCategoryOrderModal() {
+  editingCategory = null;
+  document.getElementById("categoryOrderModal").classList.remove("show");
+}
+
+async function saveCategoryOrder() {
+  if (!editingCategory) {
+    closeCategoryOrderModal();
+    return;
+  }
+
+  const input = document.getElementById("catOrderInput");
+  let value = input.value.trim();
+  if (value === "") {
+    alert("請輸入排序數字唷～");
+    return;
+  }
+  const num = parseFloat(value);
+  if (!isFinite(num)) {
+    alert("排序必須是數字。");
+    return;
+  }
+  const newOrder = num.toString();
+
+  const items = fullData.filter(item => (item.category || "未分類").trim() === editingCategory);
+
+  const btn = document.getElementById("catOrderSaveBtn");
+  const statusEl = document.getElementById("catOrderStatus");
+  const originalText = btn.textContent;
+
+  // 🔸 顯示「儲存中」狀態
+  btn.disabled = true;
+  btn.textContent = "儲存中…";
+  if (statusEl) {
+    statusEl.style.display = "inline-block";
+    statusEl.textContent = "正在更新類別排序，請稍候…";
+  }
+
+  try {
+    for (const item of items) {
+      const params = new URLSearchParams({
+        action: "update",
+        id: item.id,
+        category: item.category || "",
+        cat_order: newOrder,
+        content: item.content || "",
+        example: item.example || "",
+        note: item.note || "",
+        phrase_order: item.phrase_order || ""
+      });
+      await fetch(`${API}?${params.toString()}`);
+    }
+    showToast("已更新類別排序");
+    closeCategoryOrderModal();
+    await loadData();
+  } catch (err) {
+    console.error(err);
+    alert("更新類別排序失敗，請稍後再試。");
+  } finally {
+    // 🔸 還原按鈕 & 提示文字
+    btn.disabled = false;
+    btn.textContent = originalText;
+    if (statusEl) {
+      statusEl.style.display = "none";
+    }
+  }
+}
+
+/* 快捷鍵 Modal 控制 */
+function openShortcutModal() {
+  const listDiv = document.getElementById("shortcutList");
+  listDiv.innerHTML = "";
+  quickShortcuts.forEach(word => addShortcutRow(word));
+  updateAddShortcutBtn();
+  document.getElementById("shortcutModal").classList.add("show");
+}
+
+function closeShortcutModal() {
+  document.getElementById("shortcutModal").classList.remove("show");
+}
+
+function addShortcutRow(initial = "") {
+  const listDiv = document.getElementById("shortcutList");
+  const row = document.createElement("div");
+  row.className = "shortcut-row";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.maxLength = 50;
+  input.value = initial;
+
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.className = "shortcut-delete-btn";
+  delBtn.textContent = "刪除";
+  delBtn.addEventListener("click", () => {
+    row.remove();
+    updateAddShortcutBtn();
+  });
+
+  row.appendChild(input);
+  row.appendChild(delBtn);
+  listDiv.appendChild(row);
+
+  updateAddShortcutBtn();
+}
+
+function updateAddShortcutBtn() {
+  const btn = document.getElementById("addShortcutBtn");
+  const listDiv = document.getElementById("shortcutList");
+  const count = listDiv.querySelectorAll(".shortcut-row").length;
+  btn.disabled = count >= 15;
+}
+
+function saveShortcuts() {
+  const listDiv = document.getElementById("shortcutList");
+  const inputs = Array.from(listDiv.querySelectorAll(".shortcut-row input"));
+  const words = [];
+  inputs.forEach(input => {
+    const v = input.value.trim();
+    if (v) words.push(v);
+  });
+
+  const unique = [];
+  for (const w of words) {
+    if (!unique.includes(w)) unique.push(w);
+    if (unique.length >= 15) break;
+  }
+
+  quickShortcuts = unique;
+  saveShortcutsToStorage();
+  renderShortcutChips();
+  closeShortcutModal();
+  showToast("已更新快速搜尋鍵");
+}
+
+// 搜尋事件
+document.getElementById("phraseSearch").addEventListener("input", () => {
+  renderPhrases();
+});
+document.getElementById("globalSearch").addEventListener("input", () => {
+  document.getElementById("phraseSearch").value = "";
+  renderPhrases();
+});
+
+// Esc 關閉任一 Modal
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const phraseModal = document.getElementById("phraseModal");
+    const catModal = document.getElementById("categoryOrderModal");
+    const shortcutModal = document.getElementById("shortcutModal");
+    if (phraseModal.classList.contains("show")) closeModal();
+    if (catModal.classList.contains("show")) closeCategoryOrderModal();
+    if (shortcutModal.classList.contains("show")) closeShortcutModal();
+  }
+});
+
+// 初始化
+loadShortcutsFromStorage();
+renderShortcutChips();
+loadData();
+</script>
+
+</body>
+</html>
