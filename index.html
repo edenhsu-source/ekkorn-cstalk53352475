@@ -464,15 +464,25 @@ body:not(.admin-mode) #categoryHint { display:none; }
     <p>登入權限・類別管理・自訂排序・全域快捷搜尋・一鍵複製</p>
   </div>
 
-  <!-- 右上登入 + 修改密碼 -->
+  <!-- 右上登入 + 修改密碼 + 重新登入 -->
   <div class="login-box">
-    <div class="login-info" id="loginInfo">尚未登入</div>
+  <div class="login-info" id="loginInfo">尚未登入</div>
+
+  <div style="display:flex; gap:6px; margin-top:4px;">
     <button id="changePwdBtn"
             class="btn btn-secondary btn-mini"
-            style="margin-top:4px; display:none;"
+            style="display:none;"
             onclick="openChangePasswordModal()">
       修改密碼
     </button>
+
+    <button id="reloginBtn"
+            class="btn btn-outline btn-mini"
+            style="display:none;"
+            onclick="reLogin()">
+      重新登入
+    </button>
+  </div>
   </div>
   </header>
 
@@ -801,14 +811,17 @@ function loadSession() {
 // ===== 依角色更新 UI =====
 function updateUIByRole() {
   const info = document.getElementById("loginInfo");
-  const btn  = document.getElementById("changePwdBtn");
+  const changeBtn  = document.getElementById("changePwdBtn");
+  const reloginBtn = document.getElementById("reloginBtn");
 
   if (currentUser && currentUser.name) {
     info.textContent = `登入：${currentUser.name}（${currentUser.isAdmin ? "管理員" : "一般使用者"}）`;
-    if (btn) btn.style.display = "inline-flex";
+    if (changeBtn)  changeBtn.style.display  = "inline-flex";
+    if (reloginBtn) reloginBtn.style.display = "inline-flex";
   } else {
     info.textContent = "尚未登入";
-    if (btn) btn.style.display = "none";
+    if (changeBtn)  changeBtn.style.display  = "none";
+    if (reloginBtn) reloginBtn.style.display = "none";
   }
 
   if (currentUser.isAdmin) {
@@ -816,6 +829,27 @@ function updateUIByRole() {
   } else {
     document.body.classList.remove("admin-mode");
   }
+}
+
+// ===== 重新登入（清 session + 回到登入視窗） =====
+function reLogin() {
+  // 1) 清掉瀏覽器保存的 session
+  localStorage.removeItem("ekkornUserSession");
+
+  // 2) 重置目前登入狀態
+  currentUser = { name: null, token: null, isAdmin: false };
+
+  // 3) 更新右上角 UI + 管理員模式
+  updateUIByRole();
+
+  // 4) 關閉可能開著的彈窗（避免卡住）
+  try { closeModal(); } catch (e) {}
+  try { closeCategoryOrderModal(); } catch (e) {}
+  try { closeShortcutModal(); } catch (e) {}
+  try { closeChangePasswordModal(); } catch (e) {}
+
+  // 5) 叫出登入視窗
+  showLoginModal();
 }
 
 // ===== 登入 Modal =====
