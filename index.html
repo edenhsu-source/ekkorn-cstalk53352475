@@ -634,8 +634,11 @@ body:not(.admin-mode) #categoryHint { display:none; }
         <button class="btn btn-primary" id="catOrderSaveBtn" onclick="saveCategoryOrder()">儲存</button>
         <button class="btn btn-secondary" onclick="closeCategoryOrderModal()">取消</button>
       </div>
+
+      <!-- ✅ 新增：刪除類別 -->
+      <button class="btn btn-danger admin-only" id="catDeleteBtn" onclick="deleteCategory()">🗑 刪除類別</button>
       <span id="catOrderStatus" class="hint" style="display:none;">正在更新類別排序，請稍候…</span>
-    </div>
+      </div>
   </div>
 </div>
 
@@ -1925,6 +1928,95 @@ async function saveCategoryOrder() {
     btn.disabled = false;
     btn.textContent = originalText;
     if (statusEl) statusEl.style.display = "none";
+  }
+}
+
+// ===== 刪除類別（會刪除該類別所有話術） =====
+async function deleteCategory() {
+  if (!currentUser.isAdmin) {
+    showToast("你沒有權限刪除類別", true);
+    return;
+  }
+  if (!editingCategory) {
+    showToast("找不到要刪除的類別", true);
+    return;
+  }
+
+  const cat = editingCategory;
+
+  // 1) 先確認
+  const ok = await showConfirm({
+    title: "刪除類別確認",
+    message: "將刪除該類別所有話術。此操作無法復原。",
+    okText: "確認刪除",
+    cancelText: "取消"
+  });
+  if (!ok) return;
+
+  // 2) 準備要刪除的話術
+  const items = fullData.filter(item => (item.category || "未分類").trim() === cat);
+
+  // 3) 顯示 loading
+  showBusy("刪除中…");
+
+  // 4) 先處理「空類別」：只存在 localStorage 的那種（沒有任何話術）
+  //    這種不需要打 API，直接從 extraCategories / overrides 移除即可
+  const isExtraOnly = items.length === 0;
+
+  try {
+    if (isExtraOnly) {
+      extraCategories = extraCategories.filter(c => String(c).trim() !== cat);
+      if (catOrderOverrides && Object.prototype.hasOwnProperty.call(catOrderOverrides, cat)) {
+        delete catOrderOverrides[cat];
+      }
+      saveCategoryExtrasToStorage();
+
+      // 刪完更新畫面
+      closeCategoryOrderModal();
+      await loadData(); // 會重建 categories
+      if (currentCategory === cat) currentCategory = categories[0] || null;
+      renderCategories();
+      renderPhrases();
+      showToast("已刪除類別");
+      return;
+    }
+
+    // 5) 有話術的類別：逐筆呼叫 delete API
+    for (const item of items) {
+      const params = new URLSearchParams({
+        action: "delete",
+        id: item.id,
+        user: currentUser.name || "",
+        token: currentUser.token || ""
+      });
+      const res = await fetch(`${API}?${params.toString()}`);
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.message || "delete failed");
+      }
+    }
+
+    // 6) 如果這個類別同時也存在 extraCategories（理論上可能），也一併清掉
+    extraCategories = extraCategories.filter(c => String(c).trim() !== cat);
+    if (catOrderOverrides && Object.prototype.hasOwnProperty.call(catOrderOverrides, cat)) {
+      delete catOrderOverrides[cat];
+    }
+    saveCategoryExtrasToStorage();
+
+    closeCategoryOrderModal();
+    await loadData();
+
+    // 如果正在看的類別被刪掉，切到第一個可用類別
+    if (currentCategory === cat) currentCategory = categories[0] || null;
+
+    renderCategories();
+    renderPhrases();
+    showToast("已刪除類別");
+  } catch (err) {
+    console.error(err);
+    showToast("刪除類別失敗（可能登入逾時或權限不足）", true);
+  } finally {
+    hideBusy();
   }
 }
 
