@@ -1523,10 +1523,10 @@ function closeModal() {
   editingItem = null;
 }
 
-// ===== 儲存話術 =====
+// ===== 儲存話術（改成 Busy + Toast，避免 Google Sites 內嵌擋 alert） =====
 async function saveFromModal() {
   if (!currentUser.isAdmin) {
-    alert("你沒有權限編輯話術。");
+    showToast("你沒有權限編輯話術。", true);
     return;
   }
 
@@ -1540,7 +1540,7 @@ async function saveFromModal() {
   let phraseOrder = document.getElementById("modalPhraseOrder").value.trim();
 
   if (!content) {
-    alert("至少需要填寫『內容』欄位唷～");
+    showToast("至少需要填寫『內容』欄位唷～", true);
     return;
   }
 
@@ -1577,21 +1577,28 @@ async function saveFromModal() {
   });
 
   try {
+    showBusy(action === "update" ? "儲存變更中…" : "新增話術中…");
+
     const res = await fetch(`${API}?${params.toString()}`);
     const data = await res.json();
+
     if (!data.success) {
-      alert(data.message || "儲存失敗（可能沒有權限或登入逾時）。");
+      showToast(data.message || "儲存失敗（可能沒有權限或登入逾時）。", true);
       return;
     }
-    alert("已儲存！");
+
+    showToast(action === "update" ? "已儲存變更" : "已新增話術");
     closeModal();
     await loadData();
     currentCategory = finalCategory;
     renderCategories();
     renderPhrases();
+
   } catch (err) {
     console.error(err);
-    alert("儲存失敗，請檢查 API 連結或 Apps Script 部署。");
+    showToast("儲存失敗，請檢查 API 連結或 Apps Script 部署。", true);
+  } finally {
+    hideBusy();
   }
 }
 
